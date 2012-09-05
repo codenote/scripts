@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Collect</title>
+    </head>
+    <body>
+        <textarea id="area" cols="100" rows="70"></textarea>
+        <script>
+        	// Make anonymous so not to interfere with window
+        	(function () {
+        
+	        	function log(message) {
+	        		document.getElementById('area').innerHTML += message + "\n";
+	        		console.log(message);
+	        	}
+
+	        	function isInArray(what, ary) {
+	        		for (var ia in ary) {
+	        			if (ary[ia] == what)
+	        				return true;
+	        		}
+	        		return false;
+	        	}
+
+	        	// These elements wouls cause infinite loop while traversing
+				var treeElements = [
+				    
+					// When exploring window
+
+				    // All browsers
+				    'window',
+				    'top',
+				    'self',
+				    'parent',
+				    'frames',
+				    'document',
+				    // Opera
+				    'parentNode',
+				    'parentElement',
+				    'offsetParent',
+				    // WebKit + Opera
+				    'nextElementSibling',
+				    'nextSibling',
+				    // WebKit
+				    'firstChild',
+				    'firstElementChild',
+				    'lastChild',
+				    'lastElementChild',
+				    'childNodes',
+				    'ownerDocument',
+				    'documentElement',
+				    'defaultView',
+				    // for MSIE
+				    'parentWindow',
+				    // for Firefox
+				    'content',
+
+				    // When exploring document
+				    'previousSibling',
+				    'previousElementSibling',
+				    // MSIE
+				    'parentTextEdit',
+				    'children'
+				];
+
+				var all = [];
+				var deep = 0;
+				var start = '';
+				var totalFun = 0;
+				var totalStr = 0;
+				var totalNum = 0;
+				var totalBoo = 0;
+				var totalObj = 0;
+				var totalWTF = 0;
+
+				function explore(obj) {
+
+					deep += 1;
+					var name = obj;
+					all.push(name);
+					obj = eval(obj);
+
+					if (deep >= 10) 
+						return;			
+					
+					for (var iw in obj) {
+
+						var c = null
+						// To avoid numbers (in array)
+						try {
+							c = eval(name + '.' + iw);
+						} catch(e) {
+							continue;
+						}
+
+					    if (typeof( c ) == 'object') 
+					    {
+				    		totalObj += 1;
+				    		// Avoid nested recursive elements
+							if (isInArray(iw, treeElements)) {
+								all.push(name + '.' + iw + ' (recursive)');
+								continue;
+							}
+
+							explore(name + '.' + iw);
+					    } 
+					    else if (typeof( c ) == 'function') 
+					    {
+				    		all.push(name + '.' + iw + '()');
+				    		totalFun += 1;
+					    } 
+					    else if (typeof( c ) == 'string') 
+					    {
+				    		all.push(name + '.' + iw);
+				    		totalStr += 1;
+					    } 
+					    else if (typeof( c ) == 'number') 
+					    {
+				    		all.push(name + '.' + iw);
+				    		totalNum += 1;
+					    } 
+					    else if (typeof( c ) == 'boolean') 
+					    {
+				    		all.push(name + '.' + iw);
+				    		totalBoo += 1;
+					    } 
+					    else 
+					    {
+				    		all.push(name + '.' + iw + ' - ' + typeof(c));
+				    		totalWTF += 1;
+					    }
+					}
+
+					deep -= 1;
+					return;
+				}
+
+				start = 'window';
+				explore(start);
+
+				all.sort();
+				for (var ia in all) {
+					log(all[ia]);
+				}
+
+				// Just for debugging
+				log('-------------------------------------------------------------------------------');
+				log('Objects: ' + totalObj);			
+				log('Functions: ' + totalFun);
+				log('Strings: ' + totalStr);
+				log('Numbers: ' + totalNum);
+				log('Boolean: ' + totalBoo);
+				log('Unknown: ' + totalWTF);
+				
+				log(window);
+ 			})();
+        </script>
+    </body>
+</html>
